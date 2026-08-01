@@ -124,25 +124,6 @@ const getAllProduct = async (req, res) => {
   }
 };
 
-// const deleteProduct = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     for (const image of product.images) {
-//       await cloudinary.uploader.destroy(image.public_id);
-//     }
-//     await Product.findByIdAndDelete(id);
-
-//     res.json({
-//       success: true,
-//       message: "Product Deleted",
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: error.message,
-//     });
-//   }
-// };
 
 const deleteProduct = async(req,res)=>{
   try {
@@ -161,63 +142,94 @@ const deleteProduct = async(req,res)=>{
   }
 }
 
-
-
-// const updateProduct = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-
-//     const product = await Product.findByIdAndUpdate(
-//       id,
-//       req.body,
-//       { new: true }
-//     );
-
-//     res.json({
-//       success: true,
-//       message: "Product Updated",
-//       product,
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: error.message,
-//     });
-//   }
-// };
-
-
-const updateProduct = async(req,res)=>{
+const updateProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id)
+    const product = await Product.findById(req.params.id);
 
-    if(!product){
+    if (!product) {
       return res.status(404).json({
-        message:"Product not Found"
-      })
+        success: false,
+        message: "Product not found",
+      });
     }
-    if(req.file){
-      if(product.publicId){
-        await cloudinary.uploader.destroy(product.publicId)
-      }
-      const result = await cloudinary.uploader.upload(req.file.path,{
-        folder:"product"
-      })
-      product.publicId = result.public_id;
-      product.image = result.secure_url;
-    }
-    product.productName=
-    req.body.productName ||  product.productName
 
-    await product.save()
-    res.status(200)({
-      message:"Product Updated Successfully",
-      product
-    })
-  } catch (error) {
-    console.log(error)
+    // Image Update
+   if (req.files && req.files.length > 0) {
+
+  // Purani images delete
+  for (const img of product.images) {
+    await cloudinary.uploader.destroy(img.publicId);
   }
+
+  const uploadedImages = [];
+
+  for (const file of req.files) {
+
+    const result = await cloudinary.uploader.upload(file.path, {
+      folder: "product",
+    });
+
+    uploadedImages.push({
+      url: result.secure_url,
+      publicId: result.public_id,
+    });
+  }
+
+  product.images = uploadedImages;
 }
+
+    // Baaki fields update karo
+    product.productName = req.body.productName || product.productName;
+    product.price = req.body.price || product.price;
+    product.description = req.body.description || product.description;
+    product.category = req.body.category || product.category;
+    product.subCategory = req.body.subCategory || product.subCategory;
+    product.stock = req.body.stock || product.stock;
+    product.brand = req.body.brand || product.brand;
+    product.discount = req.body.discount || product.discount;
+
+   if (req.body.trending !== undefined) {
+  product.trending = req.body.trending === "true";
+}
+
+if (req.body.favorite !== undefined) {
+  product.favorite = req.body.favorite === "true";
+}
+
+if (req.body.antiTernish !== undefined) {
+  product.antiTernish = req.body.antiTernish === "true";
+}
+
+if (req.body.newArrivals !== undefined) {
+  product.newArrivals = req.body.newArrivals === "true";
+}
+
+if (req.body.hairAccessories !== undefined) {
+  product.hairAccessories = req.body.hairAccessories === "true";
+}
+
+if (req.body.ownBox !== undefined) {
+  product.ownBox = req.body.ownBox === "true";
+}
+
+    await product.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Product Updated Successfully",
+      product,
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+};
 
 const getProductByTrend = async (req, res) => {
   try {

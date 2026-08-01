@@ -21,7 +21,12 @@ const auth = require('../middleware/auth')
 
 
 productRouter.post('/create',auth,upload.array('images',5),createProduct)
-productRouter.put("/update/:id",auth,upload.array('image',5),updateProduct)
+productRouter.put(
+  "/update/:id",
+  auth,
+  upload.array("images", 5),
+  updateProduct
+);
 productRouter.delete("/delete/:id",auth,deleteProduct)
 productRouter.get('/get-all',getProduct)
 productRouter.get('/get-all-product',getAllProduct)

@@ -6,7 +6,7 @@ const dotenv = require('dotenv')
 const app = express()
 
 dotenv.config()
-app.use(express.json())
+app.use(express.json())  //middleware to parse incoming JSON requests
 app.use(cors())
 
 const PORT = process.env.PORT || 3000
